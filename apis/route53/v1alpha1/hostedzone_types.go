@@ -32,13 +32,13 @@ import (
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster,categories={crossplane,managed,aws}
-type HostedZone struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+// type HostedZone struct {
+// 	metav1.TypeMeta   `json:",inline"`
+// 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   HostedZoneSpec   `json:"spec"`
-	Status HostedZoneStatus `json:"status,omitempty"`
-}
+// 	Spec   HostedZoneSpec   `json:"spec"`
+// 	Status HostedZoneStatus `json:"status,omitempty"`
+// }
 
 // HostedZoneSpec defines the desired state of an AWS Route53 Hosted HostedZone.
 type HostedZoneSpec struct {
@@ -154,18 +154,18 @@ type HostedZoneResponse struct {
 	ResourceRecordSetCount int64 `json:"resourceRecordSetCount,omitempty"`
 }
 
-// DelegationSet describes the name servers for this hosted Hostedzone.
-type DelegationSet struct {
-	// The value that you specified for CallerReference when you created the reusable
-	// delegation set.
-	CallerReference string `json:"callerReference,omitempty"`
+// // DelegationSet describes the name servers for this hosted Hostedzone.
+// type DelegationSet struct {
+// 	// The value that you specified for CallerReference when you created the reusable
+// 	// delegation set.
+// 	CallerReference string `json:"callerReference,omitempty"`
 
-	// The ID that Amazon Route 53 assigns to a reusable delegation set.
-	ID string `json:"id,omitempty"`
+// 	// The ID that Amazon Route 53 assigns to a reusable delegation set.
+// 	ID string `json:"id,omitempty"`
 
-	// NameServers contains a list of the authoritative name servers for a hosted Hostedzone.
-	NameServers []string `json:"nameServers,omitempty"`
-}
+// 	// NameServers contains a list of the authoritative name servers for a hosted Hostedzone.
+// 	NameServers []string `json:"nameServers,omitempty"`
+// }
 
 // VPCObservation is used to represent the VPC object in the HostedZone response
 // object.

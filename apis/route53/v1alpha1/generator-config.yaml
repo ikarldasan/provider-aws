@@ -1,0 +1,14 @@
+ignore:
+    resource_names:
+      - HostedZone
+      - Aliases
+      - AliasTarget
+      - ResourceRecordSet
+      - QueryLoggingConfig
+      - TrafficPolicy
+      - TrafficPolicyInstance
+      - TrafficPolicyVersion
+      - HealthCheck
+      - DomainRegistration
+      - KeySigningKey
+      - VPCAssociationAuthorization 
