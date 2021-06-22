@@ -1,0 +1,8 @@
+ignore:
+    resource_names:
+        - ConfigurationSet
+        - ConfigurationSetEventDestination
+        - CustomVerificationEmailTemplate
+        - ReceiptFilter
+        - ReceiptRule
+        - ReceiptRuleSet

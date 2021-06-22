@@ -47,6 +47,7 @@ import (
 	s3v1beta1 "github.com/crossplane/provider-aws/apis/s3/v1beta1"
 	secretsmanagerv1alpha1 "github.com/crossplane/provider-aws/apis/secretsmanager/v1alpha1"
 	servicediscoveryv1alpha1 "github.com/crossplane/provider-aws/apis/servicediscovery/v1alpha1"
+	sesv1alpha1 "github.com/crossplane/provider-aws/apis/ses/v1alpha1"
 	sfnv1alpha1 "github.com/crossplane/provider-aws/apis/sfn/v1alpha1"
 	sqsv1beta1 "github.com/crossplane/provider-aws/apis/sqs/v1beta1"
 	awsv1alpha3 "github.com/crossplane/provider-aws/apis/v1alpha3"
@@ -87,6 +88,7 @@ func init() {
 		ec2v1alpha1.SchemeBuilder.AddToScheme,
 		lambdav1alpha1.SchemeBuilder.AddToScheme,
 		cloudfrontv1alpha1.SchemeBuilder.AddToScheme,
+		sesv1alpha1.AddToScheme,
 	)
 }
 
