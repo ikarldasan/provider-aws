@@ -1,0 +1,12 @@
+---
+    apiVersion: route53.aws.crossplane.io/v1alpha1
+    kind: ReusableDelegationSet
+    metadata:
+      name: reusable-delegationset
+    spec:
+      providerConfigRef:
+        name: example
+      forProvider:
+        region: us
+        callerReference: "1"
+        hostedZoneID: "1"
