@@ -19,6 +19,8 @@ limitations under the License.
 package template
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	svcsdk "github.com/aws/aws-sdk-go/service/ses"
 
@@ -31,6 +33,7 @@ import (
 // GenerateGetTemplateInput returns input for read
 // operation.
 func GenerateGetTemplateInput(cr *svcapitypes.Template) *svcsdk.GetTemplateInput {
+	fmt.Println("!!!!!!!!!!!!!!ZZ_CONVERSIONS: GenerateGetTemplateInput!!!!!!!!!!!!!!")
 	res := &svcsdk.GetTemplateInput{}
 
 	return res
@@ -38,6 +41,7 @@ func GenerateGetTemplateInput(cr *svcapitypes.Template) *svcsdk.GetTemplateInput
 
 // GenerateTemplate returns the current state in the form of *svcapitypes.Template.
 func GenerateTemplate(resp *svcsdk.GetTemplateOutput) *svcapitypes.Template {
+	fmt.Println("!!!!!!!!!!!!!!ZZ_CONVERSIONS: GenerateTemplate!!!!!!!!!!!!!!")
 	cr := &svcapitypes.Template{}
 
 	return cr
@@ -45,6 +49,7 @@ func GenerateTemplate(resp *svcsdk.GetTemplateOutput) *svcapitypes.Template {
 
 // GenerateCreateTemplateInput returns a create input.
 func GenerateCreateTemplateInput(cr *svcapitypes.Template) *svcsdk.CreateTemplateInput {
+	fmt.Println("!!!!!!!!!!!!!!ZZ_CONVERSIONS: GenerateCreateTemplateInput!!!!!!!!!!!!!!")
 	res := &svcsdk.CreateTemplateInput{}
 
 	if cr.Spec.ForProvider.Template != nil {
@@ -69,6 +74,7 @@ func GenerateCreateTemplateInput(cr *svcapitypes.Template) *svcsdk.CreateTemplat
 
 // GenerateUpdateTemplateInput returns an update input.
 func GenerateUpdateTemplateInput(cr *svcapitypes.Template) *svcsdk.UpdateTemplateInput {
+	fmt.Println("!!!!!!!!!!!!!!ZZ_CONVERSIONS: GenerateUpdateTemplateInput!!!!!!!!!!!!!!")
 	res := &svcsdk.UpdateTemplateInput{}
 
 	if cr.Spec.ForProvider.Template != nil {
@@ -93,6 +99,7 @@ func GenerateUpdateTemplateInput(cr *svcapitypes.Template) *svcsdk.UpdateTemplat
 
 // GenerateDeleteTemplateInput returns a deletion input.
 func GenerateDeleteTemplateInput(cr *svcapitypes.Template) *svcsdk.DeleteTemplateInput {
+	fmt.Println("!!!!!!!!!!!!!!ZZ_CONVERSIONS: GenerateDeleteTemplateInput!!!!!!!!!!!!!!")
 	res := &svcsdk.DeleteTemplateInput{}
 
 	return res
@@ -100,6 +107,9 @@ func GenerateDeleteTemplateInput(cr *svcapitypes.Template) *svcsdk.DeleteTemplat
 
 // IsNotFound returns whether the given error is of type NotFound or not.
 func IsNotFound(err error) bool {
+	fmt.Println("!!!!!!!!!!!!!!ZZ_CONVERSIONS: IsNotFound!!!!!!!!!!!!!!")
 	awsErr, ok := err.(awserr.Error)
+	fmt.Println("!!!!!!!!!!!!!!ZZ_CONVERSIONS: awsErr:", awsErr)
+	fmt.Println("!!!!!!!!!!!!!!ZZ_CONVERSIONS: ok:", ok)
 	return ok && awsErr.Code() == "UNKNOWN"
 }

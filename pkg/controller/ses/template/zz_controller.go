@@ -20,6 +20,7 @@ package template
 
 import (
 	"context"
+	"fmt"
 
 	svcapi "github.com/aws/aws-sdk-go/service/ses"
 	svcsdk "github.com/aws/aws-sdk-go/service/ses"
@@ -53,45 +54,64 @@ type connector struct {
 }
 
 func (c *connector) Connect(ctx context.Context, mg cpresource.Managed) (managed.ExternalClient, error) {
+	fmt.Println("============================CONNECT START============================")
 	cr, ok := mg.(*svcapitypes.Template)
 	if !ok {
+		fmt.Println("============================CONNECT END ONE============================")
 		return nil, errors.New(errUnexpectedObject)
 	}
 	sess, err := awsclient.GetConfigV1(ctx, c.kube, mg, cr.Spec.ForProvider.Region)
 	if err != nil {
+		fmt.Println("============================CONNECT END TWO============================")
 		return nil, errors.Wrap(err, errCreateSession)
 	}
+	fmt.Println("============================CONNECT END THREE============================")
 	return newExternal(c.kube, svcapi.New(sess), c.opts), nil
 }
 
 func (e *external) Observe(ctx context.Context, mg cpresource.Managed) (managed.ExternalObservation, error) {
+	fmt.Println("***************************OBSERVE START***************************")
 	cr, ok := mg.(*svcapitypes.Template)
 	if !ok {
+		fmt.Println("***************************OBSERVE END ONE***************************")
 		return managed.ExternalObservation{}, errors.New(errUnexpectedObject)
 	}
 	if meta.GetExternalName(cr) == "" {
+		fmt.Println("***************************OBSERVE END TWO***************************")
 		return managed.ExternalObservation{
 			ResourceExists: false,
 		}, nil
 	}
 	input := GenerateGetTemplateInput(cr)
+	fmt.Println("******************")
+	fmt.Println("input: ", input)
+	// fmt.Println("input.TemplateName: ", input.TemplateName)
+	fmt.Println("******************")
 	if err := e.preObserve(ctx, cr, input); err != nil {
+		fmt.Println("***************************OBSERVE END THREE***************************")
 		return managed.ExternalObservation{}, errors.Wrap(err, "pre-observe failed")
 	}
+	fmt.Println("--------AFTER------------")
+	fmt.Println("input: ", input)
+	fmt.Println("--------------------")
 	resp, err := e.client.GetTemplateWithContext(ctx, input)
 	if err != nil {
+		fmt.Println("***************************OBSERVE END FOUR***************************")
 		return managed.ExternalObservation{ResourceExists: false}, awsclient.Wrap(cpresource.Ignore(IsNotFound, err), errDescribe)
 	}
 	currentSpec := cr.Spec.ForProvider.DeepCopy()
 	if err := e.lateInitialize(&cr.Spec.ForProvider, resp); err != nil {
+		fmt.Println("***************************OBSERVE END FIVE***************************")
 		return managed.ExternalObservation{}, errors.Wrap(err, "late-init failed")
 	}
 	GenerateTemplate(resp).Status.AtProvider.DeepCopyInto(&cr.Status.AtProvider)
 
 	upToDate, err := e.isUpToDate(cr, resp)
 	if err != nil {
+		fmt.Println("***************************OBSERVE END SIX***************************")
 		return managed.ExternalObservation{}, errors.Wrap(err, "isUpToDate check failed")
 	}
+	fmt.Println("***************************OBSERVE END LAST***************************")
 	return e.postObserve(ctx, cr, resp, managed.ExternalObservation{
 		ResourceExists:          true,
 		ResourceUpToDate:        upToDate,
@@ -100,51 +120,64 @@ func (e *external) Observe(ctx context.Context, mg cpresource.Managed) (managed.
 }
 
 func (e *external) Create(ctx context.Context, mg cpresource.Managed) (managed.ExternalCreation, error) {
+	fmt.Println("################################CREATE START################################")
 	cr, ok := mg.(*svcapitypes.Template)
 	if !ok {
+		fmt.Println("################################CREATE END ONE################################")
 		return managed.ExternalCreation{}, errors.New(errUnexpectedObject)
 	}
 	cr.Status.SetConditions(xpv1.Creating())
 	input := GenerateCreateTemplateInput(cr)
 	if err := e.preCreate(ctx, cr, input); err != nil {
+		fmt.Println("################################CREATE END TWO################################")
 		return managed.ExternalCreation{}, errors.Wrap(err, "pre-create failed")
 	}
 	resp, err := e.client.CreateTemplateWithContext(ctx, input)
 	if err != nil {
+		fmt.Println("################################CREATE END THREE################################")
 		return managed.ExternalCreation{}, awsclient.Wrap(err, errCreate)
 	}
-
+	fmt.Println("################################CREATE END LAST################################")
 	return e.postCreate(ctx, cr, resp, managed.ExternalCreation{}, err)
 }
 
 func (e *external) Update(ctx context.Context, mg cpresource.Managed) (managed.ExternalUpdate, error) {
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^UPDATE START^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 	cr, ok := mg.(*svcapitypes.Template)
 	if !ok {
+		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^UPDATE END ONE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 		return managed.ExternalUpdate{}, errors.New(errUnexpectedObject)
 	}
 	input := GenerateUpdateTemplateInput(cr)
 	if err := e.preUpdate(ctx, cr, input); err != nil {
+		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^UPDATE END TWO^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 		return managed.ExternalUpdate{}, errors.Wrap(err, "pre-update failed")
 	}
 	resp, err := e.client.UpdateTemplateWithContext(ctx, input)
+	fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^UPDATE END LAST^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 	return e.postUpdate(ctx, cr, resp, managed.ExternalUpdate{}, awsclient.Wrap(err, errUpdate))
 }
 
 func (e *external) Delete(ctx context.Context, mg cpresource.Managed) error {
+	fmt.Println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$DELETE START$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 	cr, ok := mg.(*svcapitypes.Template)
 	if !ok {
+		fmt.Println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$DELETE END ONE$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 		return errors.New(errUnexpectedObject)
 	}
 	cr.Status.SetConditions(xpv1.Deleting())
 	input := GenerateDeleteTemplateInput(cr)
 	ignore, err := e.preDelete(ctx, cr, input)
 	if err != nil {
+		fmt.Println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$DELETE END TWO$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 		return errors.Wrap(err, "pre-delete failed")
 	}
 	if ignore {
+		fmt.Println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$DELETE END THREE$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 		return nil
 	}
 	resp, err := e.client.DeleteTemplateWithContext(ctx, input)
+	fmt.Println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$DELETE END LAST$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 	return e.postDelete(ctx, cr, resp, awsclient.Wrap(cpresource.Ignore(IsNotFound, err), errDelete))
 }
 
@@ -187,34 +220,44 @@ type external struct {
 }
 
 func nopPreObserve(context.Context, *svcapitypes.Template, *svcsdk.GetTemplateInput) error {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --nopPreObserve-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return nil
 }
 
 func nopPostObserve(_ context.Context, _ *svcapitypes.Template, _ *svcsdk.GetTemplateOutput, obs managed.ExternalObservation, err error) (managed.ExternalObservation, error) {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --nopPostObserve-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return obs, err
 }
 func nopLateInitialize(*svcapitypes.TemplateParameters, *svcsdk.GetTemplateOutput) error {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --nopLateInitialize-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return nil
 }
 func alwaysUpToDate(*svcapitypes.Template, *svcsdk.GetTemplateOutput) (bool, error) {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --alwaysUpToDate-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return true, nil
 }
 
 func nopPreCreate(context.Context, *svcapitypes.Template, *svcsdk.CreateTemplateInput) error {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --nopPreCreate-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return nil
 }
 func nopPostCreate(_ context.Context, _ *svcapitypes.Template, _ *svcsdk.CreateTemplateOutput, cre managed.ExternalCreation, err error) (managed.ExternalCreation, error) {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --nopPostCreate-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return cre, err
 }
 func nopPreDelete(context.Context, *svcapitypes.Template, *svcsdk.DeleteTemplateInput) (bool, error) {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --nopPreDelete-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return false, nil
 }
 func nopPostDelete(_ context.Context, _ *svcapitypes.Template, _ *svcsdk.DeleteTemplateOutput, err error) error {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --nopPostDelete-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return err
 }
 func nopPreUpdate(context.Context, *svcapitypes.Template, *svcsdk.UpdateTemplateInput) error {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --nopPreUpdate-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return nil
 }
 func nopPostUpdate(_ context.Context, _ *svcapitypes.Template, _ *svcsdk.UpdateTemplateOutput, upd managed.ExternalUpdate, err error) (managed.ExternalUpdate, error) {
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX --nopPostUpdate-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 	return upd, err
 }

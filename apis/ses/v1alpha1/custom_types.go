@@ -16,4 +16,5 @@ limitations under the License.
 
 package v1alpha1
 
+// CustomTemplateParameters contains the additional fields for TemplateParameters.
 type CustomTemplateParameters struct{}

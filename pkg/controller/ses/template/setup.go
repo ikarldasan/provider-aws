@@ -17,20 +17,37 @@ limitations under the License.
 package template
 
 import (
-	"github.com/crossplane/crossplane-runtime/pkg/event"
-	"github.com/crossplane/crossplane-runtime/pkg/logging"
-	"github.com/crossplane/crossplane-runtime/pkg/ratelimiter"
-	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
-	"github.com/crossplane/crossplane-runtime/pkg/resource"
-	svcapitypes "github.com/crossplane/provider-aws/apis/ses/v1alpha1"
+	"context"
+	"fmt"
+
 	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+
+	svcsdk "github.com/aws/aws-sdk-go/service/ses"
+	"github.com/crossplane/crossplane-runtime/pkg/event"
+	"github.com/crossplane/crossplane-runtime/pkg/logging"
+	"github.com/crossplane/crossplane-runtime/pkg/meta"
+	"github.com/crossplane/crossplane-runtime/pkg/ratelimiter"
+	"github.com/crossplane/crossplane-runtime/pkg/reconciler/managed"
+	"github.com/crossplane/crossplane-runtime/pkg/resource"
+	aws "github.com/crossplane/provider-aws/pkg/clients"
+
+	svcapitypes "github.com/crossplane/provider-aws/apis/ses/v1alpha1"
 )
 
 // SetupTemplate adds a controller that reconciles Template.
 func SetupTemplate(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter) error {
 	name := managed.ControllerName(svcapitypes.TemplateGroupKind)
+	opts := []option{
+		func(e *external) {
+			e.preObserve = preObserve
+			// e.postObserve = postObserve
+			// e.preCreate = preCreate
+			// e.preUpdate = preUpdate
+			// e.preDelete = preDelete
+		},
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		WithOptions(controller.Options{
@@ -39,7 +56,47 @@ func SetupTemplate(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter)
 		For(&svcapitypes.Template{}).
 		Complete(managed.NewReconciler(mgr,
 			resource.ManagedKind(svcapitypes.TemplateGroupVersionKind),
-			managed.WithExternalConnecter(&connector{kube: mgr.GetClient()}),
+			managed.WithExternalConnecter(&connector{kube: mgr.GetClient(), opts: opts}),
 			managed.WithLogger(l.WithValues("controller", name)),
 			managed.WithRecorder(event.NewAPIRecorder(mgr.GetEventRecorderFor(name)))))
 }
+
+// func preObserve(_ context.Context, cr *svcapitypes.Template, obj *svcsdk.CreateTemplateInput) error {
+// 	obj.Template.TemplateName = aws.String(meta.GetExternalName(cr))
+// 	return nil
+// }
+
+func preObserve(_ context.Context, cr *svcapitypes.Template, obj *svcsdk.GetTemplateInput) error {
+	fmt.Println("---------PRE OBSERVE CALLED---------")
+	obj.TemplateName = aws.String(meta.GetExternalName(cr))
+
+	fmt.Println("obj.TemplateName: ", *obj.TemplateName)
+	return nil
+}
+
+func postObserve(_ context.Context, cr *svcapitypes.Template, obj *svcsdk.GetTemplateOutput, obs managed.ExternalObservation, err error) (managed.ExternalObservation, error) {
+	fmt.Println("---------POST OBSERVE CALLED---------")
+	obj.Template.TemplateName = aws.String(meta.GetExternalName(cr))
+	obj.Template.HtmlPart = aws.String(*cr.Spec.ForProvider.Template.HTMLPart)
+	obj.Template.SubjectPart = aws.String(*cr.Spec.ForProvider.Template.SubjectPart)
+	obj.Template.TextPart = aws.String(*cr.Spec.ForProvider.Template.TextPart)
+	return managed.ExternalObservation{}, nil
+}
+
+func preCreate(_ context.Context, cr *svcapitypes.Template, obj *svcsdk.CreateTemplateInput) error {
+	fmt.Println("---------PRE CREATE CALLED---------")
+	obj.Template.TemplateName = aws.String(meta.GetExternalName(cr))
+	obj.Template.HtmlPart = aws.String(*cr.Spec.ForProvider.Template.HTMLPart)
+	obj.Template.SubjectPart = aws.String(*cr.Spec.ForProvider.Template.SubjectPart)
+	obj.Template.TextPart = aws.String(*cr.Spec.ForProvider.Template.TextPart)
+	return nil
+}
+
+func preUpdate(_ context.Context, cr *svcapitypes.Template, obj *svcsdk.UpdateTemplateInput) error {
+	obj.Template.TemplateName = aws.String(meta.GetExternalName(cr))
+	obj.Template.HtmlPart = aws.String(*cr.Spec.ForProvider.Template.HTMLPart)
+	obj.Template.SubjectPart = aws.String(*cr.Spec.ForProvider.Template.SubjectPart)
+	obj.Template.TextPart = aws.String(*cr.Spec.ForProvider.Template.TextPart)
+	return nil
+}
+
