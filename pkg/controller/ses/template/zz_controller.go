@@ -149,6 +149,9 @@ func (e *external) Update(ctx context.Context, mg cpresource.Managed) (managed.E
 		return managed.ExternalUpdate{}, errors.New(errUnexpectedObject)
 	}
 	input := GenerateUpdateTemplateInput(cr)
+	fmt.Println("^^^^^^^^^^^")
+	fmt.Println("input: ", input)
+	fmt.Println("^^^^^^^^^^^")
 	if err := e.preUpdate(ctx, cr, input); err != nil {
 		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^UPDATE END TWO^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 		return managed.ExternalUpdate{}, errors.Wrap(err, "pre-update failed")
