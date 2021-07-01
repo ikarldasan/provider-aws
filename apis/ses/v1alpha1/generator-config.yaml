@@ -6,3 +6,9 @@ ignore:
         - ReceiptFilter
         - ReceiptRule
         - ReceiptRuleSet
+    resources:
+        Template:
+            exceptions:
+                errors:
+                    404:
+                        code: TemplateDoesNotExist

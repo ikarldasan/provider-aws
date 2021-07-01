@@ -45,7 +45,7 @@ func SetupTemplate(mgr ctrl.Manager, l logging.Logger, rl workqueue.RateLimiter)
 		func(e *external) {
 			// e.preCreate = preCreate
 			e.postCreate = postCreate
-			// e.preObserve = preObserve
+			e.preObserve = preObserve
 			e.postObserve = postObserve
 			// e.preUpdate = preUpdate
 			e.preDelete = preDelete
@@ -72,6 +72,7 @@ func preObserve(_ context.Context, cr *svcapitypes.Template, obj *svcsdk.GetTemp
 	fmt.Println("---------PRE OBSERVE CALLED---------")
 
 	fmt.Println("cr: ", cr)
+	fmt.Println("cr: ", cr.Status)
 	fmt.Println("obj: ", obj)
 	fmt.Println("obj.String: ", obj.String())
 	fmt.Println("obj.GoString: ", obj.GoString())
@@ -94,9 +95,11 @@ func postObserve(_ context.Context, cr *svcapitypes.Template, obj *svcsdk.GetTem
 	if err != nil {
 		return managed.ExternalObservation{}, err
 	}
-	// if svcapitypes.BulkEmailStatus == obj.Template. {
-	// 	cr.SetConditions(xpv1.Unavailable())
-	// }
+
+	if obj.Template != nil {
+		fmt.Println("------------------------------")
+	}
+
 	cr.SetConditions(xpv1.Available())
 	return obs, err
 }
@@ -136,6 +139,7 @@ func postCreate(context context.Context, cr *svcapitypes.Template, obj *svcsdk.C
 	}
 
 	meta.SetExternalName(cr, aws.StringValue(cr.Spec.ForProvider.Template.TemplateName))
+	// meta.SetExternalName(cr, aws.StringValue())
 	fmt.Println("After: meta.GetExternalName(cr): ", meta.GetExternalName(cr))
 	fmt.Println("After: aws.String(meta.GetExternalName(cr)): ", aws.String(meta.GetExternalName(cr)))
 	cre.ExternalNameAssigned = true
@@ -146,6 +150,7 @@ func postDelete(_ context.Context, cr *svcapitypes.Template, obj *svcsdk.DeleteT
 	fmt.Println("---------POST DELETE CALLED---------")
 
 	fmt.Println("cr: ", cr)
+	fmt.Println("cr.Status: ", cr.Status)
 	fmt.Println("obj: ", obj)
 	fmt.Println("obj.String: ", obj.String())
 	fmt.Println("obj.GoString: ", obj.GoString())
